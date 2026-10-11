@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stream Glass</title>
+<script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh; font-family: -apple-system, SF Pro Display, sans-serif;
+    background: radial-gradient(circle at 20% 20%, #3a1c71, #0f0c29 60%), 
+                radial-gradient(circle at 80% 80%, #ff6a88, transparent 50%);
+    background-blend-mode: screen;
+    color: #fff; display:flex; flex-direction:column; align-items:center; padding: 30px 16px 60px;
+  }
+  h1 { font-weight: 600; font-size: 22px; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .sub { color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 24px; }
+  .glass {
+    width: 100%; max-width: 480px; background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.25); border-radius: 24px; padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3); margin-bottom: 20px;
+  }
+  textarea {
+    width: 100%; min-height: 70px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.25); color: #fff; padding: 12px; font-size: 14px; resize: none;
+  }
+  textarea::placeholder { color: rgba(255,255,255,0.4); }
+  .row { display:flex; gap: 10px; margin-top: 14px; }
+  button {
+    flex:1; border: none; border-radius: 14px; padding: 14px 10px; font-size: 15px; font-weight: 600;
+    color: #fff; cursor: pointer; transition: transform 0.15s ease;
+  }
+  button:active { transform: scale(0.96); }
+  .btn-play { background: linear-gradient(135deg, #ff6a88, #ff99ac); }
+  .btn-infuse { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  video {
+    width: 100%; border-radius: 18px; margin-top: 14px; background: #000; display:none;
+  }
+  .status { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 10px; min-height: 18px; }
+  .bar {
+    width: 100%; height: 6px; background: rgba(255,255,255,0.15); border-radius: 6px; margin-top: 8px; overflow: hidden; display:none;
+  }
+  .bar-fill { height: 100%; width:0%; background: linear-gradient(90deg,#ff6a88,#4facfe); transition: width 0.3s; }
+  .hint { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 16px; line-height: 1.8; text-align:center; max-width: 480px; }
+</style>
+</head>
+<body>
+
+<h1>🎬 Stream Glass</h1>
+<div class="sub">لینک مگنت رو بچسبون، پخش کن یا بفرست به Infuse</div>
+
+<div class="glass">
+  <textarea id="magnet" placeholder="لینک مگنت رو اینجا پیست کن..."></textarea>
+  <div class="row">
+    <button class="btn-play" onclick="playHere()">▶️ پخش همینجا</button>
+    <button class="btn-infuse" onclick="openInfuse()">📺 باز کردن در Infuse</button>
+  </div>
+  <div class="bar" id="bar"><div class="bar-fill" id="barFill"></div></div>
+  <div class="status" id="status"></div>
+  <video id="video" controls playsinline></video>
+</div>
+
+<div class="hint">
+  برای پخش همینجا باید تورنت حداقل چند هم‌رسان (peer) با پشتیبانی WebRTC داشته باشه، وگرنه گزینه‌ی Infuse رو بزن.<br>
+  گزینه‌ی Infuse لینک مگنت رو مستقیم به اپ Infuse روی آیفون می‌فرسته.
+</div>
+
+<script>
+function openInfuse() {
+  const link = document.getElementById('magnet').value.trim();
+  if (!link) { alert('اول لینک مگنت رو وارد کن'); return; }
+  const encoded = encodeURIComponent(link);
+  const infuseUrl = 'infuse://x-callback-url/play?url=' + encoded;
+  window.location.href = infuseUrl;
+}
+
+let client;
