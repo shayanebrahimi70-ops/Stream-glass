@@ -3,77 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stream Glass">
 <title>Stream Glass</title>
-<script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/webtorrent@1.9.7/webtorrent.min.js"></script>
 <style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    margin: 0; min-height: 100vh; font-family: -apple-system, SF Pro Display, sans-serif;
-    background: radial-gradient(circle at 20% 20%, #3a1c71, #0f0c29 60%), 
-                radial-gradient(circle at 80% 80%, #ff6a88, transparent 50%);
-    background-blend-mode: screen;
-    color: #fff; display:flex; flex-direction:column; align-items:center; padding: 30px 16px 60px;
-  }
-  h1 { font-weight: 600; font-size: 22px; margin-bottom: 4px; letter-spacing: 0.5px; }
-  .sub { color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 24px; }
-  .glass {
-    width: 100%; max-width: 480px; background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%);
-    border: 1px solid rgba(255,255,255,0.25); border-radius: 24px; padding: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3); margin-bottom: 20px;
-  }
-  textarea {
-    width: 100%; min-height: 70px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(0,0,0,0.25); color: #fff; padding: 12px; font-size: 14px; resize: none;
-  }
-  textarea::placeholder { color: rgba(255,255,255,0.4); }
-  .row { display:flex; gap: 10px; margin-top: 14px; }
-  button {
-    flex:1; border: none; border-radius: 14px; padding: 14px 10px; font-size: 15px; font-weight: 600;
-    color: #fff; cursor: pointer; transition: transform 0.15s ease;
-  }
-  button:active { transform: scale(0.96); }
-  .btn-play { background: linear-gradient(135deg, #ff6a88, #ff99ac); }
-  .btn-infuse { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-  video {
-    width: 100%; border-radius: 18px; margin-top: 14px; background: #000; display:none;
-  }
-  .status { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 10px; min-height: 18px; }
-  .bar {
-    width: 100%; height: 6px; background: rgba(255,255,255,0.15); border-radius: 6px; margin-top: 8px; overflow: hidden; display:none;
-  }
-  .bar-fill { height: 100%; width:0%; background: linear-gradient(90deg,#ff6a88,#4facfe); transition: width 0.3s; }
-  .hint { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 16px; line-height: 1.8; text-align:center; max-width: 480px; }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;font-family:-apple-system,sans-serif;color:#fff;
+background:radial-gradient(circle at 20% 15%,#4a2c9a,transparent 55%),radial-gradient(circle at 85% 85%,#ff6a88,transparent 50%),#0f0c29;
+display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top) + 30px) 16px 60px}
+h1{font-size:24px;margin:0 0 4px}
+.sub{color:rgba(255,255,255,.6);font-size:13px;margin-bottom:24px}
+.glass{width:100%;max-width:480px;background:rgba(255,255,255,.1);
+backdrop-filter:blur(25px) saturate(180%);-webkit-backdrop-filter:blur(25px) saturate(180%);
+border:1px solid rgba(255,255,255,.28);border-radius:26px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.35)}
+textarea{width:100%;min-height:80px;border-radius:16px;border:1px solid rgba(255,255,255,.2);
+background:rgba(0,0,0,.28);color:#fff;padding:12px;font-size:15px;resize:none;direction:ltr}
+textarea::placeholder{color:rgba(255,255,255,.4)}
+button{width:100%;margin-top:14px;border:0;border-radius:16px;padding:15px;font-size:16px;font-weight:600;color:#fff;
+background:linear-gradient(135deg,#ff6a88,#ff99ac);transition:transform .15s}
+button:active{transform:scale(.97)}
+video{width:100%;border-radius:18px;margin-top:16px;background:#000;display:none}
+.bar{height:6px;background:rgba(255,255,255,.15);border-radius:6px;margin-top:14px;overflow:hidden;display:none}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#ff6a88,#4facfe);transition:width .3s}
+.status{font-size:13px;color:rgba(255,255,255,.75);margin-top:10px;min-height:18px;direction:ltr;text-align:left;word-break:break-all}
+.hint{font-size:12px;color:rgba(255,255,255,.45);margin-top:18px;line-height:1.9;text-align:center;max-width:480px}
 </style>
 </head>
 <body>
-
 <h1>🎬 Stream Glass</h1>
-<div class="sub">لینک مگنت رو بچسبون، پخش کن یا بفرست به Infuse</div>
-
+<div class="sub">لینک مگنت رو بچسبون و پخش کن</div>
 <div class="glass">
-  <textarea id="magnet" placeholder="لینک مگنت رو اینجا پیست کن..."></textarea>
-  <div class="row">
-    <button class="btn-play" onclick="playHere()">▶️ پخش همینجا</button>
-    <button class="btn-infuse" onclick="openInfuse()">📺 باز کردن در Infuse</button>
-  </div>
-  <div class="bar" id="bar"><div class="bar-fill" id="barFill"></div></div>
-  <div class="status" id="status"></div>
-  <video id="video" controls playsinline></video>
+<textarea id="magnet" placeholder="magnet:?xt=urn:btih:..."></textarea>
+<button onclick="playHere()">▶️ پخش</button>
+<div class="bar" id="bar"><div class="fill" id="fill"></div></div>
+<div class="status" id="status"></div>
+<video id="video" controls playsinline></video>
 </div>
-
-<div class="hint">
-  برای پخش همینجا باید تورنت حداقل چند هم‌رسان (peer) با پشتیبانی WebRTC داشته باشه، وگرنه گزینه‌ی Infuse رو بزن.<br>
-  گزینه‌ی Infuse لینک مگنت رو مستقیم به اپ Infuse روی آیفون می‌فرسته.
-</div>
-
+<div class="hint">فقط تورنت‌هایی که هم‌رسان WebRTC دارند توی مرورگر کار می‌کنند. فرمت MP4 روی آیفون بهترین نتیجه رو می‌ده.</div>
 <script>
-function openInfuse() {
-  const link = document.getElementById('magnet').value.trim();
-  if (!link) { alert('اول لینک مگنت رو وارد کن'); return; }
-  const encoded = encodeURIComponent(link);
-  const infuseUrl = 'infuse://x-callback-url/play?url=' + encoded;
-  window.location.href = infuseUrl;
-}
-
 let client;
+function playHere(){
+  const link=document.getElementById('magnet').value.trim();
+  if(!link){alert('اول لینک مگنت رو وارد کن');return;}
+  const st=document.getElementById('status'),bar=document.getElementById('bar'),
+        fill=document.getElementById('fill'),video=document.getElementById('video');
+  if(client){client.destroy();}
+  client=new WebTorrent();
+  st.innerText='در حال اتصال...';
+  bar.style.display='block';
+  client.on('error',e=>{st.innerText='خطا: '+e.message;});
+  client.add(link,t=>{
+    const f=t.files.reduce((a,b)=>a.length>b.length?a:b);
+    video.style.display='block';
+    f.renderTo(video,{autoplay:true});
+    t.on('download',()=>{
+      fill.style.width=(t.progress*100).toFixed(1)+'%';
+      st.innerText=f.name+' — '+(t.progress*100).toFixed(1)+'% — '+(t.downloadSpeed/1048576).toFixed(2)+' MB/s';
+    });
+  });
+}
+</script>
+</body>
+</html>
